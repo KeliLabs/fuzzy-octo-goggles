@@ -3,10 +3,190 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>fuzzy-octo-goggles</title>
+  <meta name="theme-color" content="#ff4f8b" />
+  <title>A Date Invitation 💌</title>
+  <style>
+    :root {
+      --pink: #ff4f8b;
+      --deep-pink: #e82f70;
+      --purple: #6c3cff;
+      --ink: #35223a;
+      --card: rgba(255, 255, 255, .88);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100svh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      color: var(--ink);
+      font-family: ui-rounded, "Nunito", "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 10% 15%, #fff 0 5%, transparent 5.2%),
+        radial-gradient(circle at 90% 15%, #ffe187 0 4%, transparent 4.2%),
+        linear-gradient(135deg, #ffd2e2, #f3dcff 48%, #cceeff);
+      padding: 20px;
+    }
+
+    .card {
+      width: min(100%, 560px);
+      position: relative;
+      padding: clamp(28px, 7vw, 48px);
+      border: 2px solid rgba(255, 255, 255, .75);
+      border-radius: 30px;
+      background: var(--card);
+      box-shadow: 0 22px 60px rgba(102, 41, 90, .22);
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .sparkle { font-size: 2.2rem; animation: bob 1.5s ease-in-out infinite alternate; }
+    h1 { margin: 12px 0 10px; font-size: clamp(2rem, 7vw, 3.25rem); line-height: 1.05; }
+    .sub { margin: 0 0 26px; font-size: 1.08rem; font-weight: 650; color: #704762; }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      min-height: 64px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 15px 27px;
+      min-height: 52px;
+      color: white;
+      font: inherit;
+      font-size: 1.08rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, .12);
+      transition: transform .16s ease, box-shadow .16s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0, 0, 0, .12); }
+    #yes { background: linear-gradient(135deg, var(--pink), var(--deep-pink)); }
+    #no { background: linear-gradient(135deg, #8f82aa, #655875); position: relative; }
+
+    #message { min-height: 28px; margin: 0; font-weight: 800; color: var(--deep-pink); }
+
+    .picker {
+      display: none;
+      margin-top: 24px;
+      padding: 22px;
+      border-radius: 20px;
+      background: #fff5fa;
+      text-align: left;
+    }
+    .picker.show { display: block; animation: pop .35s ease both; }
+    label { display: block; margin-bottom: 8px; font-weight: 800; }
+    input {
+      width: 100%;
+      min-height: 52px;
+      padding: 12px;
+      border: 2px solid #f5b8cf;
+      border-radius: 13px;
+      background: white;
+      color: var(--ink);
+      font: inherit;
+    }
+    #confirm { width: 100%; margin-top: 14px; background: linear-gradient(135deg, var(--purple), #976cff); }
+    #final { display: none; margin: 20px 0 0; font-size: 1.12rem; font-weight: 850; color: #6b2d71; }
+
+    .heart { position: fixed; pointer-events: none; font-size: 1.4rem; animation: float 2.5s ease-in forwards; }
+
+    @keyframes bob { to { transform: translateY(-8px) rotate(8deg); } }
+    @keyframes pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+    @keyframes float { to { transform: translateY(-170px) rotate(25deg); opacity: 0; } }
+
+    @media (max-width: 390px) {
+      .buttons { gap: 10px; }
+      button { padding-inline: 20px; }
+    }
+  </style>
 </head>
 <body>
-  <h1>fuzzy-octo-goggles</h1>
-  <p>This site is served via GitHub Pages.</p>
+  <main class="card">
+    <div class="sparkle" aria-hidden="true">✨💖✨</div>
+    <h1>Will you go on a date with me?</h1>
+    <p class="sub">I promise excellent company, big smiles, and a little bit of magic.</p>
+
+    <div class="buttons">
+      <button id="yes" type="button">Yes! 💕</button>
+      <button id="no" type="button" aria-label="No">No 🙈</button>
+    </div>
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <section id="picker" class="picker" aria-live="polite">
+      <label for="dateTime">Pick our perfect date and time</label>
+      <input id="dateTime" type="datetime-local" />
+      <button id="confirm" type="button">Lock in our date! 🎉</button>
+    </section>
+    <p id="final" role="status"></p>
+  </main>
+
+  <script>
+    const yes = document.getElementById('yes');
+    const no = document.getElementById('no');
+    const message = document.getElementById('message');
+    const picker = document.getElementById('picker');
+    const dateTime = document.getElementById('dateTime');
+    const confirm = document.getElementById('confirm');
+    const final = document.getElementById('final');
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    dateTime.min = now.toISOString().slice(0, 16);
+
+    function hearts() {
+      for (let i = 0; i < 14; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'heart';
+        heart.textContent = ['💖', '💕', '✨', '🥰'][i % 4];
+        heart.style.left = `${20 + Math.random() * 60}%`;
+        heart.style.top = `${55 + Math.random() * 25}%`;
+        heart.style.animationDelay = `${i * 0.06}s`;
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 2900);
+      }
+    }
+
+    function wrongOption() {
+      message.textContent = 'Oops! You clicked the wrong option 😄 Try “Yes”!';
+      no.style.transform = `translate(${Math.random() * 50 - 25}px, ${Math.random() * 24 - 12}px)`;
+      setTimeout(() => (no.style.transform = ''), 450);
+    }
+
+    no.addEventListener('click', wrongOption);
+    no.addEventListener('pointerenter', () => {
+      if (window.matchMedia('(hover: hover)').matches) wrongOption();
+    });
+
+    yes.addEventListener('click', () => {
+      message.textContent = 'Yay! I knew you would say yes! 🥳';
+      picker.classList.add('show');
+      hearts();
+      dateTime.focus();
+    });
+
+    confirm.addEventListener('click', () => {
+      if (!dateTime.value) {
+        message.textContent = 'Choose a date and time first, my favourite person! 💗';
+        dateTime.focus();
+        return;
+      }
+      const selected = new Date(dateTime.value);
+      final.style.display = 'block';
+      final.textContent = `It’s a date! See you on ${selected.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })} at ${selected.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. 💘`;
+      hearts();
+    });
+  </script>
 </body>
 </html>
